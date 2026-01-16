@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "dev",
+      "type": "debugpy",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "module": "vm_mcp",
+      "env": {
+        "PROVIDERS_CONFIG_PATH": "./providers.yaml"
+      },
+      "console": "integratedTerminal",
+      "justMyCode": false
+    }
+  ]
+}

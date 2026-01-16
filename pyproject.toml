@@ -1,0 +1,65 @@
+[project]
+name = "cloud-vm-mcp-py"
+version = "0.1.0"
+description = "A Model Context Protocol for managing and viewing virtual machines across multiple cloud providers (AWS, Azure)"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Sean Dang", email = "sondt.2709@gmail.com" }]
+maintainers = [
+    { name = "Sean Dang", email = "sondt.2709@gmail.com" },
+]
+keywords = ["vm", "mcp", "llm", "automation", "aws", "azure", "cloud"]
+license = "MIT"
+dependencies = [
+    "mcp[cli]>=1.13.1",
+    "pydantic>=2.0.0",
+    "python-dotenv>=1.1.1",
+    "pyyaml>=6.0.0",
+    "watchdog>=4.0.0",
+    "boto3>=1.35.0",
+    "azure-identity>=1.17.0",
+    "azure-mgmt-compute>=32.0.0",
+    "azure-mgmt-network>=26.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.3.0",
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-mock>=3.12.0",
+    "ruff>=0.12.10",
+    "ty>=0.0.1a19",
+]
+
+[project.urls]
+Homepage = "https://github.com/sondt2709/cloud-vm-mcp-py"
+Repository = "https://github.com/sondt2709/cloud-vm-mcp-py"
+
+[project.scripts]
+vm-mcp = "vm_mcp:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["vm_mcp*"]
+exclude = ["ssh_mcp*", "openspec*", "tests*", "build*"]
+
+[tool.uv]
+package = true
+
+[tool.ruff]
+builtins = ["_"]
+exclude = [".venv"]
+fix = true
+
+[tool.ruff.format]
+skip-magic-trailing-comma = false
+
+[tool.ruff.lint]
+extend-select = ["I"] # Import-related rules
+
+[tool.ty.src]
+include = ["vm_mcp"]
