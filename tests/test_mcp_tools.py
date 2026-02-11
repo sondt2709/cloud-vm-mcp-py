@@ -7,6 +7,7 @@ from vm_mcp.mcp import (
     get_vm_details,
     list_providers,
     list_vms,
+    reboot_vm,
     start_vm,
     stop_vm,
 )
@@ -60,6 +61,24 @@ class TestMCPTools:
         assert "Invalid VM ID format" in data["error"]
 
     @pytest.mark.asyncio
+    async def test_reboot_vm_invalid_id(self):
+        """Test reboot_vm with invalid VM ID."""
+        result = await reboot_vm("bad-id")
+        data = yaml.safe_load(result)
+        assert data["status"] == "error"
+        assert "Invalid VM ID format" in data["error"]
+
+    @pytest.mark.asyncio
+    async def test_reboot_vm_no_provider(self, sample_providers_yaml, monkeypatch):
+        """Test reboot_vm with non-existent provider."""
+        monkeypatch.setenv("PROVIDERS_CONFIG_PATH", str(sample_providers_yaml))
+
+        result = await reboot_vm("gcp:tenant:region:instance")
+        data = yaml.safe_load(result)
+        assert data["status"] == "error"
+        assert "No provider found" in data["error"]
+
+    @pytest.mark.asyncio
     async def test_list_vms_with_invalid_provider_filter(self, sample_providers_yaml, monkeypatch):
         """Test list_vms with non-existent provider filter."""
         monkeypatch.setenv("PROVIDERS_CONFIG_PATH", str(sample_providers_yaml))
@@ -91,6 +110,7 @@ class TestMCPTools:
             await get_vm_details("aws:test:us-east-1:i-123"),
             await start_vm("aws:test:us-east-1:i-123"),
             await stop_vm("aws:test:us-east-1:i-123"),
+            await reboot_vm("aws:test:us-east-1:i-123"),
         ]
 
         for result in results:

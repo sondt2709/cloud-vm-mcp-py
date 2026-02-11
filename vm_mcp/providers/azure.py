@@ -327,3 +327,43 @@ class AzureProvider(BaseProvider):
                 return (True, f"VM {vm_name} is stopping (deallocating)")
 
         return (False, f"VM {vm_name} not found")
+
+    async def reboot_vm(self, vm_id: str) -> tuple[bool, str]:
+        """Reboot an Azure VM."""
+        for subscription_id in self._directory.subscription_ids:
+            try:
+                result = await self._reboot_vm_in_subscription(vm_id, subscription_id)
+                if result[0]:
+                    return result
+            except Exception:
+                logger.exception("Failed to reboot VM %s", vm_id)
+
+        return (False, f"VM {vm_id} not found in any configured subscription")
+
+    async def _reboot_vm_in_subscription(
+        self, vm_name: str, subscription_id: str
+    ) -> tuple[bool, str]:
+        """Reboot a VM in a specific subscription."""
+        client = self._get_compute_client(subscription_id)
+
+        # Find the VM to get resource group
+        def _list():
+            return list(client.virtual_machines.list_all())
+
+        vms_list = await asyncio.to_thread(_list)
+
+        for vm in vms_list:
+            if vm.name == vm_name:
+                parts = vm.id.split("/")
+                resource_group = parts[4] if len(parts) > 4 else ""
+
+                def _reboot():
+                    poller = client.virtual_machines.begin_restart(
+                        resource_group, vm_name
+                    )
+                    return poller
+
+                await asyncio.to_thread(_reboot)
+                return (True, f"VM {vm_name} is rebooting")
+
+        return (False, f"VM {vm_name} not found")

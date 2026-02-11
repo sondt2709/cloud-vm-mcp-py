@@ -425,3 +425,61 @@ async def stop_vm(vm_id: str, force: bool = False) -> str:
             "status": "error",
             "error": f"Failed to stop VM: {str(e)}",
         }, default_flow_style=False)
+
+
+@mcp.tool()
+async def reboot_vm(vm_id: str) -> str:
+    """Reboot a virtual machine.
+
+    Args:
+        vm_id: The composite VM ID (format: provider:tenant:region:instance_id)
+
+    Returns:
+        YAML formatted string indicating success or failure
+    """
+    try:
+        parsed = BaseProvider.parse_composite_id(vm_id)
+        if not parsed:
+            return yaml.dump({
+                "status": "error",
+                "error": "Invalid VM ID format. Expected: provider:tenant:region:instance_id",
+            }, default_flow_style=False)
+
+        provider_name, tenant_alias, region, instance_id = parsed
+
+        provider = get_provider_by_composite_id(vm_id)
+        if not provider:
+            return yaml.dump({
+                "status": "error",
+                "error": f"No provider found for {provider_name}:{tenant_alias}",
+            }, default_flow_style=False)
+
+        try:
+            success, message = await asyncio.wait_for(
+                provider.reboot_vm(instance_id),
+                timeout=PER_REQUEST_TIMEOUT,
+            )
+        except asyncio.TimeoutError:
+            logger.exception("reboot_vm for %s timed out after %ss", vm_id, PER_REQUEST_TIMEOUT)
+            return yaml.dump({
+                "status": "error",
+                "error": f"Request timed out after {PER_REQUEST_TIMEOUT}s",
+            }, default_flow_style=False)
+
+        if success:
+            return yaml.dump({
+                "status": "success",
+                "message": message,
+            }, default_flow_style=False)
+        else:
+            return yaml.dump({
+                "status": "error",
+                "error": message,
+            }, default_flow_style=False)
+
+    except Exception as e:
+        logger.exception("Failed to reboot VM %s", vm_id)
+        return yaml.dump({
+            "status": "error",
+            "error": f"Failed to reboot VM: {str(e)}",
+        }, default_flow_style=False)

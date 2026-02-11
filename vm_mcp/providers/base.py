@@ -69,6 +69,18 @@ class BaseProvider(ABC):
         """
         ...
 
+    @abstractmethod
+    async def reboot_vm(self, vm_id: str) -> tuple[bool, str]:
+        """Reboot a VM.
+
+        Args:
+            vm_id: The instance ID (not composite ID)
+
+        Returns:
+            Tuple of (success, message)
+        """
+        ...
+
     def make_composite_id(self, region: str, instance_id: str) -> str:
         """Create a composite VM ID.
 

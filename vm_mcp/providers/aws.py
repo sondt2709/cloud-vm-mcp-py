@@ -235,3 +235,32 @@ class AWSProvider(BaseProvider):
 
         state = await asyncio.to_thread(_stop)
         return (True, f"Instance {instance_id} is now {state}")
+
+    async def reboot_vm(self, vm_id: str) -> tuple[bool, str]:
+        """Reboot an EC2 instance."""
+        for region in self._account.regions:
+            try:
+                result = await self._reboot_vm_in_region(vm_id, region)
+                if result[0]:
+                    return result
+            except ClientError as e:
+                if e.response["Error"]["Code"] != "InvalidInstanceID.NotFound":
+                    logger.exception("Failed to reboot VM %s", vm_id)
+                    return (False, str(e))
+            except Exception:
+                logger.exception("Failed to reboot VM %s", vm_id)
+
+        return (False, f"Instance {vm_id} not found in any configured region")
+
+    async def _reboot_vm_in_region(
+        self, instance_id: str, region: str
+    ) -> tuple[bool, str]:
+        """Reboot an instance in a specific region."""
+        client = self._get_client(region)
+
+        def _reboot():
+            client.reboot_instances(InstanceIds=[instance_id])
+            return "rebooting"
+
+        state = await asyncio.to_thread(_reboot)
+        return (True, f"Instance {instance_id} is now {state}")
