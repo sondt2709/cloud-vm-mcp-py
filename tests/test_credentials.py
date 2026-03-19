@@ -1,6 +1,8 @@
 """Tests for credential models."""
 
 from vm_mcp.model.credentials import (
+    AlibabaAccount,
+    AlibabaConfig,
     AWSAccount,
     AWSConfig,
     AzureConfig,
@@ -42,6 +44,26 @@ class TestAzureDirectory:
         assert directory.subscription_ids == ["sub-1", "sub-2"]
 
 
+class TestAlibabaAccount:
+    """Tests for Alibaba Cloud account model."""
+
+    def test_valid_alibaba_account(self, sample_alibaba_config):
+        """Test creating a valid Alibaba account."""
+        account = AlibabaAccount(**sample_alibaba_config)
+        assert account.alias == "test-alibaba"
+        assert account.access_key_id == "LTAI5tExampleKeyId"
+        assert account.access_key_secret == "ExampleAccessKeySecretValue123"
+        assert account.regions == ["cn-hangzhou", "ap-southeast-1"]
+
+    def test_missing_required_field(self):
+        """Test validation error for missing required field."""
+        import pytest
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
+            AlibabaAccount(alias="test", access_key_id="key")  # missing access_key_secret and regions
+
+
 class TestProvidersConfig:
     """Tests for providers configuration."""
 
@@ -67,8 +89,20 @@ class TestProvidersConfig:
         assert len(directories) == 1
         assert directories[0].alias == "test-azure"
 
+    def test_get_alibaba_accounts(self, sample_alibaba_config):
+        """Test getting Alibaba accounts from config."""
+        account = AlibabaAccount(**sample_alibaba_config)
+        config = ProvidersConfig(
+            providers={"alibaba": AlibabaConfig(accounts=[account])}
+        )
+
+        accounts = config.get_alibaba_accounts()
+        assert len(accounts) == 1
+        assert accounts[0].alias == "test-alibaba"
+
     def test_empty_config(self):
         """Test empty configuration."""
         config = ProvidersConfig(providers={})
         assert config.get_aws_accounts() == []
         assert config.get_azure_directories() == []
+        assert config.get_alibaba_accounts() == []

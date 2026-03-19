@@ -22,6 +22,15 @@ class AzureDirectory(BaseModel):
     subscription_ids: list[str]
 
 
+class AlibabaAccount(BaseModel):
+    """Alibaba Cloud account credentials configuration."""
+
+    alias: str
+    access_key_id: str
+    access_key_secret: str
+    regions: list[str]
+
+
 class AWSConfig(BaseModel):
     """AWS provider configuration with multiple accounts."""
 
@@ -34,10 +43,16 @@ class AzureConfig(BaseModel):
     directories: list[AzureDirectory] = []
 
 
+class AlibabaConfig(BaseModel):
+    """Alibaba Cloud provider configuration with multiple accounts."""
+
+    accounts: list[AlibabaAccount] = []
+
+
 class ProvidersConfig(BaseModel):
     """Root configuration for all cloud providers."""
 
-    providers: dict[str, AWSConfig | AzureConfig] = {}
+    providers: dict[str, AWSConfig | AzureConfig | AlibabaConfig] = {}
 
     def get_aws_accounts(self) -> list[AWSAccount]:
         """Get all configured AWS accounts."""
@@ -51,4 +66,11 @@ class ProvidersConfig(BaseModel):
         azure_config = self.providers.get("azure")
         if isinstance(azure_config, AzureConfig):
             return azure_config.directories
+        return []
+
+    def get_alibaba_accounts(self) -> list[AlibabaAccount]:
+        """Get all configured Alibaba Cloud accounts."""
+        alibaba_config = self.providers.get("alibaba")
+        if isinstance(alibaba_config, AlibabaConfig):
+            return alibaba_config.accounts
         return []

@@ -13,6 +13,8 @@ from watchdog.observers import Observer
 from vm_mcp.model.credentials import (
     AWSAccount,
     AWSConfig,
+    AlibabaAccount,
+    AlibabaConfig,
     AzureConfig,
     AzureDirectory,
     ProvidersConfig,
@@ -92,6 +94,15 @@ class ConfigLoader:
                     for d in azure_raw.get("directories", [])
                 ]
                 providers["azure"] = AzureConfig(directories=directories)
+
+            # Parse Alibaba Cloud config
+            if "alibaba" in raw_providers:
+                alibaba_raw = raw_providers["alibaba"]
+                accounts = [
+                    AlibabaAccount.model_validate(acc)
+                    for acc in alibaba_raw.get("accounts", [])
+                ]
+                providers["alibaba"] = AlibabaConfig(accounts=accounts)
 
             return ProvidersConfig(providers=providers)
 

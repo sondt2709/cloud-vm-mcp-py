@@ -7,7 +7,7 @@ import yaml
 from mcp.server.fastmcp import FastMCP
 
 from vm_mcp.config import get_config
-from vm_mcp.model.credentials import AWSConfig, AzureConfig
+from vm_mcp.model.credentials import AlibabaConfig, AWSConfig, AzureConfig
 from vm_mcp.model.vm import ProviderError, ProviderInfo, VMInfo
 from vm_mcp.providers import get_provider_by_composite_id, get_providers
 from vm_mcp.providers.base import BaseProvider
@@ -20,7 +20,7 @@ TOTAL_QUERY_TIMEOUT = 180
 
 mcp = FastMCP(
     name="vm-mcp",
-    instructions="A Model Context Protocol for managing and viewing virtual machines across multiple cloud providers (AWS, Azure)",
+    instructions="A Model Context Protocol for managing and viewing virtual machines across multiple cloud providers (AWS, Azure, Alibaba Cloud)",
 )
 
 
@@ -207,6 +207,18 @@ async def list_providers() -> str:
                         provider="azure",
                         tenant_alias=directory.alias,
                         regions=directory.subscription_ids,  # subscriptions as "regions"
+                    )
+                )
+
+        # Alibaba Cloud accounts
+        alibaba_config = config.providers.get("alibaba")
+        if isinstance(alibaba_config, AlibabaConfig):
+            for account in alibaba_config.accounts:
+                providers_info.append(
+                    ProviderInfo(
+                        provider="alibaba",
+                        tenant_alias=account.alias,
+                        regions=account.regions,
                     )
                 )
 

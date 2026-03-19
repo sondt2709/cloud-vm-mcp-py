@@ -79,6 +79,16 @@ class TestMCPTools:
         assert "No provider found" in data["error"]
 
     @pytest.mark.asyncio
+    async def test_reboot_vm_no_alibaba_provider(self, sample_providers_yaml, monkeypatch):
+        """Test reboot_vm with non-existent Alibaba provider."""
+        monkeypatch.setenv("PROVIDERS_CONFIG_PATH", str(sample_providers_yaml))
+
+        result = await reboot_vm("alibaba:tenant:cn-hangzhou:i-bp123")
+        data = yaml.safe_load(result)
+        assert data["status"] == "error"
+        assert "No provider found" in data["error"]
+
+    @pytest.mark.asyncio
     async def test_list_vms_with_invalid_provider_filter(self, sample_providers_yaml, monkeypatch):
         """Test list_vms with non-existent provider filter."""
         monkeypatch.setenv("PROVIDERS_CONFIG_PATH", str(sample_providers_yaml))

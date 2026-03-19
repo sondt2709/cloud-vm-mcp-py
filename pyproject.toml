@@ -1,14 +1,14 @@
 [project]
 name = "cloud-vm-mcp-py"
-version = "0.3.0"
-description = "A Model Context Protocol for managing and viewing virtual machines across multiple cloud providers (AWS, Azure)"
+version = "0.4.0"
+description = "A Model Context Protocol for managing and viewing virtual machines across multiple cloud providers (AWS, Azure, Alibaba Cloud)"
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [{ name = "Sean Dang", email = "sondt.2709@gmail.com" }]
 maintainers = [
     { name = "Sean Dang", email = "sondt.2709@gmail.com" },
 ]
-keywords = ["vm", "mcp", "llm", "automation", "aws", "azure", "cloud"]
+keywords = ["vm", "mcp", "llm", "automation", "aws", "azure", "alibaba", "cloud"]
 license = "MIT"
 dependencies = [
     "mcp[cli]>=1.13.1",
@@ -20,6 +20,8 @@ dependencies = [
     "azure-identity>=1.17.0",
     "azure-mgmt-compute>=32.0.0",
     "azure-mgmt-network>=26.0.0",
+    "alibabacloud-ecs20140526>=6.0.0",
+    "alibabacloud-tea-openapi>=0.3.0",
 ]
 
 [dependency-groups]

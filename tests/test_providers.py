@@ -27,3 +27,8 @@ class TestBaseProvider:
     def test_parse_composite_id_five_parts(self):
         """Test parsing composite ID with too many parts."""
         assert BaseProvider.parse_composite_id("a:b:c:d:e") is None
+
+    def test_parse_alibaba_composite_id(self):
+        """Test parsing Alibaba composite ID."""
+        result = BaseProvider.parse_composite_id("alibaba:myaccount:cn-hangzhou:i-bp123")
+        assert result == ("alibaba", "myaccount", "cn-hangzhou", "i-bp123")

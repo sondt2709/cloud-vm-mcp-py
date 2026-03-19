@@ -34,3 +34,13 @@ providers:
         client_secret: another-client-secret
         subscription_ids:
           - 66666666-6666-6666-6666-666666666666
+
+  alibaba:
+    accounts:
+      - alias: my-alibaba
+        access_key_id: LTAI5tYourAccessKeyId
+        access_key_secret: YourAccessKeySecret
+        regions:
+          - cn-hongkong
+          - cn-hangzhou
+          - ap-southeast-1

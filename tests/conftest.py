@@ -39,6 +39,17 @@ def sample_azure_config():
 
 
 @pytest.fixture
+def sample_alibaba_config():
+    """Sample Alibaba Cloud configuration."""
+    return {
+        "alias": "test-alibaba",
+        "access_key_id": "LTAI5tExampleKeyId",
+        "access_key_secret": "ExampleAccessKeySecretValue123",
+        "regions": ["cn-hangzhou", "ap-southeast-1"],
+    }
+
+
+@pytest.fixture
 def sample_providers_yaml(tmp_path, sample_aws_config, sample_azure_config):
     """Create a sample providers.yaml file."""
     import yaml

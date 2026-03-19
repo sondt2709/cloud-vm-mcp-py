@@ -1,6 +1,6 @@
 # Cloud VM MCP: Model Context Protocol for Cloud VM Management
 
-Cloud VM MCP is a Model Context Protocol (MCP) server for managing and viewing virtual machines across multiple cloud providers (AWS, Azure). It enables AI assistants to list, inspect, and control VMs through a unified interface.
+Cloud VM MCP is a Model Context Protocol (MCP) server for managing and viewing virtual machines across multiple cloud providers (AWS, Azure, Alibaba Cloud). It enables AI assistants to list, inspect, and control VMs through a unified interface.
 
 -----
 
@@ -115,7 +115,7 @@ npx @modelcontextprotocol/inspector uv run vm-mcp -e PROVIDERS_CONFIG_PATH=/path
 
 ## Key Features 🚀
 
-- **Multi-Provider Support**: Manage VMs across AWS and Azure from a single interface
+- **Multi-Provider Support**: Manage VMs across AWS, Azure, and Alibaba Cloud from a single interface
 - **Multi-Account Support**: Configure multiple AWS accounts and Azure directories
 - **Unified VM Model**: Consistent VM representation across providers
 - **Filtering**: Filter VMs by provider, tenant (account/directory), or region
@@ -130,6 +130,7 @@ npx @modelcontextprotocol/inspector uv run vm-mcp -e PROVIDERS_CONFIG_PATH=/path
 - **Python 3.10 or higher**
 - **boto3**: For AWS EC2 operations
 - **azure-identity, azure-mgmt-compute, azure-mgmt-network**: For Azure VM operations
+- **alibabacloud-ecs20140526, alibabacloud-tea-openapi**: For Alibaba Cloud ECS operations
 - **pyyaml**: For YAML configuration parsing
 - **watchdog**: For configuration file watching
 
@@ -170,6 +171,15 @@ providers:
         client_secret: your-client-secret-here
         subscription_ids:
           - 22222222-2222-2222-2222-222222222222
+
+  alibaba:
+    accounts:
+      - alias: china-prod
+        access_key_id: LTAI5tYourAccessKeyId
+        access_key_secret: YourAccessKeySecret
+        regions:
+          - cn-hangzhou
+          - ap-southeast-1
 ```
 
 ### Environment Variables
@@ -196,6 +206,7 @@ VMs are identified using a composite ID format:
 **Examples:**
 - AWS: `aws:production:us-east-1:i-1234567890abcdef0`
 - Azure: `azure:corp-main:eastus:web-server-01`
+- Alibaba: `alibaba:china-prod:cn-hangzhou:i-bp1234567890abcdef`
 
 -----
 
@@ -243,7 +254,6 @@ uv publish --username __token__ --password YOUR_PYPI_API_KEY
 
 ## Future Roadmap 🗺️
 
-- Alibaba Cloud provider support
 - Firewall rules viewing
 - Elastic IP management
 - RAM/CPU/GPU details

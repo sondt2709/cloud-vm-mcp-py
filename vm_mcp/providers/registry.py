@@ -1,7 +1,8 @@
 """Provider registry and factory."""
 
 from vm_mcp.config import get_config
-from vm_mcp.model.credentials import AWSConfig, AzureConfig
+from vm_mcp.model.credentials import AlibabaConfig, AWSConfig, AzureConfig
+from vm_mcp.providers.alibaba import AlibabaProvider
 from vm_mcp.providers.aws import AWSProvider
 from vm_mcp.providers.azure import AzureProvider
 from vm_mcp.providers.base import BaseProvider
@@ -14,7 +15,7 @@ def get_providers(
     """Get list of providers based on filters.
 
     Args:
-        provider: Optional provider filter ('aws', 'azure')
+        provider: Optional provider filter ('aws', 'azure', 'alibaba')
         tenant: Optional tenant alias filter
 
     Returns:
@@ -38,6 +39,14 @@ def get_providers(
             for directory in azure_config.directories:
                 if tenant is None or directory.alias == tenant:
                     providers.append(AzureProvider(directory))
+
+    # Alibaba Cloud providers
+    if provider is None or provider == "alibaba":
+        alibaba_config = config.providers.get("alibaba")
+        if isinstance(alibaba_config, AlibabaConfig):
+            for account in alibaba_config.accounts:
+                if tenant is None or account.alias == tenant:
+                    providers.append(AlibabaProvider(account))
 
     return providers
 
