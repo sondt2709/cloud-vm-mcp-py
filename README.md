@@ -186,6 +186,12 @@ providers:
 
 - `MCP_TRANSPORT`: stdio, sse, streamable-http (defaults to stdio)
 - `PROVIDERS_CONFIG_PATH`: Path to YAML configuration file (required)
+- `VM_MCP_CONFIRM_REQUIRED_TOOLS`: Comma-separated tool names that require user
+  confirmation before running (defaults to `start_vm,stop_vm,reboot_vm`). The
+  confirmation prompt is sent via the MCP elicitation protocol, so it appears
+  only in clients that support elicitation (e.g. Claude Code, MCP Inspector);
+  other clients run the tool unprompted. Set to an empty value to disable
+  confirmation for all tools.
 
 ### Security Recommendations
 

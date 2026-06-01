@@ -3,12 +3,84 @@
 import pytest
 
 
+class _FakeSession:
+    """Stand-in for the MCP server session used by the confirmation gate."""
+
+    def __init__(self, supports_elicitation: bool):
+        self._supports = supports_elicitation
+
+    def check_client_capability(self, capability) -> bool:
+        return self._supports
+
+
+class _FakeContext:
+    """Minimal fake of FastMCP Context for confirmation tests.
+
+    ``supports`` toggles advertised elicitation capability. ``elicit_result``
+    is returned from ``elicit`` when the client supports elicitation.
+    """
+
+    def __init__(self, supports: bool = False, elicit_result=None):
+        self.session = _FakeSession(supports)
+        self._elicit_result = elicit_result
+        self.elicit_calls: list[str] = []
+
+    async def elicit(self, message: str, schema):
+        self.elicit_calls.append(message)
+        return self._elicit_result
+
+
+def make_accept_context(answer: str = "Yes"):
+    """Context whose client supports elicitation and accepts with ``answer``."""
+    from mcp.server.elicitation import AcceptedElicitation
+
+    from vm_mcp.confirmation import Confirm
+
+    return _FakeContext(
+        supports=True,
+        elicit_result=AcceptedElicitation(data=Confirm(confirmation=answer)),
+    )
+
+
+def make_decline_context():
+    """Context whose client supports elicitation and declines."""
+    from mcp.server.elicitation import DeclinedElicitation
+
+    return _FakeContext(supports=True, elicit_result=DeclinedElicitation())
+
+
+def make_cancel_context():
+    """Context whose client supports elicitation and cancels."""
+    from mcp.server.elicitation import CancelledElicitation
+
+    return _FakeContext(supports=True, elicit_result=CancelledElicitation())
+
+
+@pytest.fixture
+def noelicit_ctx():
+    """Context whose client does NOT support elicitation (fail-open)."""
+    return _FakeContext(supports=False)
+
+
+@pytest.fixture
+def accept_ctx():
+    """Context that accepts the confirmation prompt."""
+    return make_accept_context()
+
+
+@pytest.fixture
+def decline_ctx():
+    """Context that declines the confirmation prompt."""
+    return make_decline_context()
+
+
 @pytest.fixture(autouse=True)
 def reset_config(monkeypatch):
     """Reset config loader before and after each test."""
     # Clear any env var that might cause issues
     monkeypatch.delenv("PROVIDERS_CONFIG_PATH", raising=False)
-    
+    monkeypatch.delenv("VM_MCP_CONFIRM_REQUIRED_TOOLS", raising=False)
+
     from vm_mcp.config import reset_config_loader
     reset_config_loader()
     yield

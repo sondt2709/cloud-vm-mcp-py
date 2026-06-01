@@ -19,3 +19,4 @@ providers.yaml
 
 # Vibe code
 .omc/
+.mcp.json

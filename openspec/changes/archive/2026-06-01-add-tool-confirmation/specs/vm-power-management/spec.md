@@ -1,53 +1,4 @@
-# vm-power-management Specification
-
-## Purpose
-TBD - created by archiving change update-output-format. Update Purpose after archive.
-## Requirements
-### Requirement: YAML Output Format for Start VM
-
-The `start_vm` tool SHALL return output in valid YAML format with a consistent structure.
-
-#### Scenario: Successful VM start
-- **WHEN** a user calls `start_vm` and the operation succeeds
-- **THEN** the output is valid YAML with:
-  - `status`: "success"
-  - `message`: success message from provider
-
-#### Scenario: Failed VM start
-- **WHEN** a user calls `start_vm` and the operation fails
-- **THEN** the output is valid YAML with:
-  - `status`: "error"
-  - `error`: error message from provider
-
-### Requirement: YAML Output Format for Stop VM
-
-The `stop_vm` tool SHALL return output in valid YAML format with a consistent structure.
-
-#### Scenario: Successful VM stop
-- **WHEN** a user calls `stop_vm` and the operation succeeds
-- **THEN** the output is valid YAML with:
-  - `status`: "success"
-  - `message`: success message from provider
-
-#### Scenario: Failed VM stop
-- **WHEN** a user calls `stop_vm` and the operation fails
-- **THEN** the output is valid YAML with:
-  - `status`: "error"
-  - `error`: error message from provider
-
-### Requirement: Console Error Logging for Power Management
-
-Power management tools SHALL log errors to console using Python's `logging` module in addition to returning them via MCP.
-
-#### Scenario: Start VM exception logged
-- **WHEN** `start_vm` throws an exception
-- **THEN** the full traceback is logged using `logging.exception()`
-- **AND** a summary error is included in the YAML response
-
-#### Scenario: Stop VM exception logged
-- **WHEN** `stop_vm` throws an exception
-- **THEN** the full traceback is logged using `logging.exception()`
-- **AND** a summary error is included in the YAML response
+## MODIFIED Requirements
 
 ### Requirement: Start VM
 
@@ -113,41 +64,6 @@ The system SHALL provide an MCP tool `stop_vm` to stop a running virtual machine
 - **THEN** the system does not stop the VM
 - **AND** returns YAML with `status`: "cancelled" and an explanatory message
 
-### Requirement: Force Stop VM
-
-The system SHALL support a `force` parameter for the `stop_vm` tool to force stop a VM. When `stop_vm` requires confirmation, the confirmation message SHALL indicate that the stop will be forced (non-graceful) when `force=true`.
-
-#### Scenario: Force stop a VM
-- **WHEN** a user calls `stop_vm` with `force=true`
-- **THEN** the system forcefully stops the VM without graceful shutdown
-
-#### Scenario: Default graceful stop
-- **WHEN** a user calls `stop_vm` without the `force` parameter
-- **THEN** the system performs a graceful shutdown (default behavior)
-
-#### Scenario: Force stop confirmation highlights force
-- **WHEN** a user calls `stop_vm` with `force=true` and confirmation is required
-- **THEN** the confirmation message indicates the stop will be forced (non-graceful)
-
-### Requirement: Power Operation Timeout
-
-The system SHALL support a `timeout` parameter for power operations to wait for state change confirmation.
-
-#### Scenario: Wait for state change
-- **WHEN** a user calls `start_vm` or `stop_vm` with `wait=true` and `timeout=60`
-- **THEN** the system waits up to 60 seconds for the VM to reach the target state
-- **AND** returns the final state of the VM
-
-#### Scenario: Timeout exceeded
-- **WHEN** the VM does not reach the target state within the timeout period
-- **THEN** the system returns a timeout warning with the current state
-- **AND** does not raise an error (the operation was initiated)
-
-#### Scenario: Default no-wait behavior
-- **WHEN** a user calls power operations without `wait` parameter
-- **THEN** the system returns immediately after initiating the operation
-- **AND** reports the transitional state (starting/stopping)
-
 ### Requirement: Reboot VM
 
 The system SHALL provide an MCP tool `reboot_vm` to reboot a running virtual machine. When `reboot_vm` is in the configured confirmation-required set and the client supports elicitation, the tool SHALL request user confirmation before initiating the reboot operation.
@@ -179,28 +95,18 @@ The system SHALL provide an MCP tool `reboot_vm` to reboot a running virtual mac
 - **THEN** the system does not reboot the VM
 - **AND** returns YAML with `status`: "cancelled" and an explanatory message
 
-### Requirement: YAML Output Format for Reboot VM
+### Requirement: Force Stop VM
 
-The `reboot_vm` tool SHALL return output in valid YAML format with a consistent structure.
+The system SHALL support a `force` parameter for the `stop_vm` tool to force stop a VM. When `stop_vm` requires confirmation, the confirmation message SHALL indicate that the stop will be forced (non-graceful) when `force=true`.
 
-#### Scenario: Successful VM reboot
-- **WHEN** a user calls `reboot_vm` and the operation succeeds
-- **THEN** the output is valid YAML with:
-  - `status`: "success"
-  - `message`: success message from provider
+#### Scenario: Force stop a VM
+- **WHEN** a user calls `stop_vm` with `force=true`
+- **THEN** the system forcefully stops the VM without graceful shutdown
 
-#### Scenario: Failed VM reboot
-- **WHEN** a user calls `reboot_vm` and the operation fails
-- **THEN** the output is valid YAML with:
-  - `status`: "error"
-  - `error`: error message from provider
+#### Scenario: Default graceful stop
+- **WHEN** a user calls `stop_vm` without the `force` parameter
+- **THEN** the system performs a graceful shutdown (default behavior)
 
-### Requirement: Console Error Logging for Reboot VM
-
-The `reboot_vm` tool SHALL log errors to console using Python's `logging` module in addition to returning them via MCP.
-
-#### Scenario: Reboot VM exception logged
-- **WHEN** `reboot_vm` throws an exception
-- **THEN** the full traceback is logged using `logging.exception()`
-- **AND** a summary error is included in the YAML response
-
+#### Scenario: Force stop confirmation highlights force
+- **WHEN** a user calls `stop_vm` with `force=true` and confirmation is required
+- **THEN** the confirmation message indicates the stop will be forced (non-graceful)

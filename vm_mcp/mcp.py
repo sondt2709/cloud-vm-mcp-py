@@ -4,9 +4,10 @@ import asyncio
 import logging
 
 import yaml
-from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp import Context, FastMCP
 
 from vm_mcp.config import get_config
+from vm_mcp.confirmation import confirm, requires_confirmation
 from vm_mcp.model.credentials import AlibabaConfig, AWSConfig, AzureConfig
 from vm_mcp.model.vm import ProviderError, ProviderInfo, VMInfo
 from vm_mcp.providers import get_provider_by_composite_id, get_providers
@@ -17,6 +18,14 @@ logger = logging.getLogger(__name__)
 # Timeout settings (in seconds)
 PER_REQUEST_TIMEOUT = 60
 TOTAL_QUERY_TIMEOUT = 180
+
+
+def _cancelled_response(tool_name: str) -> str:
+    """YAML response returned when the user declines a confirmation prompt."""
+    return yaml.dump({
+        "status": "cancelled",
+        "message": f"User did not confirm the execution of `{tool_name}`; no action was performed.",
+    }, default_flow_style=False)
 
 mcp = FastMCP(
     name="vm-mcp",
@@ -68,6 +77,7 @@ async def _query_provider_with_timeout(
 
 @mcp.tool()
 async def list_vms(
+    ctx: Context,
     provider: str | None = None,
     tenant: str | None = None,
     region: str | None = None,
@@ -83,6 +93,10 @@ async def list_vms(
         YAML formatted string containing VM list or error information
     """
     try:
+        if requires_confirmation("list_vms"):
+            if not await confirm(ctx, "Run `list_vms` to list virtual machines?"):
+                return _cancelled_response("list_vms")
+
         providers = get_providers(provider=provider, tenant=tenant)
 
         if not providers:
@@ -176,13 +190,17 @@ async def list_vms(
 
 
 @mcp.tool()
-async def list_providers() -> str:
+async def list_providers(ctx: Context) -> str:
     """List all configured cloud providers and their accounts/directories.
 
     Returns:
         YAML formatted string containing provider information
     """
     try:
+        if requires_confirmation("list_providers"):
+            if not await confirm(ctx, "Run `list_providers` to list configured cloud providers?"):
+                return _cancelled_response("list_providers")
+
         config = get_config()
         providers_info: list[ProviderInfo] = []
 
@@ -252,7 +270,7 @@ async def list_providers() -> str:
 
 
 @mcp.tool()
-async def get_vm_details(vm_id: str) -> str:
+async def get_vm_details(vm_id: str, ctx: Context) -> str:
     """Get detailed information about a specific virtual machine.
 
     Args:
@@ -262,6 +280,10 @@ async def get_vm_details(vm_id: str) -> str:
         YAML formatted string containing VM details or error information
     """
     try:
+        if requires_confirmation("get_vm_details"):
+            if not await confirm(ctx, f"Run `get_vm_details` for VM `{vm_id}`?"):
+                return _cancelled_response("get_vm_details")
+
         parsed = BaseProvider.parse_composite_id(vm_id)
         if not parsed:
             return yaml.dump({
@@ -323,7 +345,7 @@ async def get_vm_details(vm_id: str) -> str:
 
 
 @mcp.tool()
-async def start_vm(vm_id: str) -> str:
+async def start_vm(vm_id: str, ctx: Context) -> str:
     """Start a virtual machine.
 
     Args:
@@ -333,6 +355,10 @@ async def start_vm(vm_id: str) -> str:
         YAML formatted string indicating success or failure
     """
     try:
+        if requires_confirmation("start_vm"):
+            if not await confirm(ctx, f"Start VM `{vm_id}`?"):
+                return _cancelled_response("start_vm")
+
         parsed = BaseProvider.parse_composite_id(vm_id)
         if not parsed:
             return yaml.dump({
@@ -381,7 +407,7 @@ async def start_vm(vm_id: str) -> str:
 
 
 @mcp.tool()
-async def stop_vm(vm_id: str, force: bool = False) -> str:
+async def stop_vm(vm_id: str, ctx: Context, force: bool = False) -> str:
     """Stop a virtual machine.
 
     Args:
@@ -392,6 +418,11 @@ async def stop_vm(vm_id: str, force: bool = False) -> str:
         YAML formatted string indicating success or failure
     """
     try:
+        if requires_confirmation("stop_vm"):
+            force_note = " with a FORCED (non-graceful) shutdown" if force else ""
+            if not await confirm(ctx, f"Stop VM `{vm_id}`{force_note}?"):
+                return _cancelled_response("stop_vm")
+
         parsed = BaseProvider.parse_composite_id(vm_id)
         if not parsed:
             return yaml.dump({
@@ -440,7 +471,7 @@ async def stop_vm(vm_id: str, force: bool = False) -> str:
 
 
 @mcp.tool()
-async def reboot_vm(vm_id: str) -> str:
+async def reboot_vm(vm_id: str, ctx: Context) -> str:
     """Reboot a virtual machine.
 
     Args:
@@ -450,6 +481,10 @@ async def reboot_vm(vm_id: str) -> str:
         YAML formatted string indicating success or failure
     """
     try:
+        if requires_confirmation("reboot_vm"):
+            if not await confirm(ctx, f"Reboot VM `{vm_id}`?"):
+                return _cancelled_response("reboot_vm")
+
         parsed = BaseProvider.parse_composite_id(vm_id)
         if not parsed:
             return yaml.dump({

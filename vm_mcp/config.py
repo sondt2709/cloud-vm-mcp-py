@@ -11,16 +11,32 @@ from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
 from vm_mcp.model.credentials import (
-    AWSAccount,
-    AWSConfig,
     AlibabaAccount,
     AlibabaConfig,
+    AWSAccount,
+    AWSConfig,
     AzureConfig,
     AzureDirectory,
     ProvidersConfig,
 )
 
 logger = logging.getLogger(__name__)
+
+# Tools that require user confirmation by default before performing their action.
+DEFAULT_CONFIRM_REQUIRED_TOOLS = ("start_vm", "stop_vm", "reboot_vm")
+
+
+def get_confirm_required_tools() -> set[str]:
+    """Return the set of tool names that require user confirmation.
+
+    Read from the ``VM_MCP_CONFIRM_REQUIRED_TOOLS`` environment variable as a
+    comma-separated list. When unset, defaults to the destructive power tools.
+    An explicitly empty value disables confirmation for all tools.
+    """
+    raw = os.getenv("VM_MCP_CONFIRM_REQUIRED_TOOLS")
+    if raw is None:
+        return set(DEFAULT_CONFIRM_REQUIRED_TOOLS)
+    return {name.strip() for name in raw.split(",") if name.strip()}
 
 
 class ConfigFileHandler(FileSystemEventHandler):
